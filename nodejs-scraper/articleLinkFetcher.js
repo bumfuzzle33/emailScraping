@@ -12,7 +12,7 @@ puppeteer.use(StealthPlugin())
 const {executablePath} = require('puppeteer') 
 
 let searchText = "arts"
-let number_of_articles = 1000
+let number_of_articles = 10
 let startPage = 1
 let articlesUrl = `https://journals.sagepub.com/action/doSearch?field1=AllField&text1=${searchText}&publication=&Ppub=&access=&pageSize=${number_of_articles}&AfterYear=2014&BeforeYear=2023&queryID=14%2F1651925948&startPage=${startPage}&sortBy=FullEpubDateField`
 
