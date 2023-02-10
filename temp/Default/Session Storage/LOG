@@ -1,0 +1,8 @@
+2023/02/10-01:01:53.335 3 Reusing MANIFEST /home/zoe/email-marketing/temp/Default/Session Storage/MANIFEST-000001
+2023/02/10-01:01:53.338 3 Recovering log #3
+2023/02/10-01:01:53.339 3 Level-0 table #3: started
+2023/02/10-01:01:53.378 3 Level-0 table #3: 11659 bytes OK
+2023/02/10-01:01:53.379 3 Recovering log #4
+2023/02/10-01:01:53.380 3 Reusing old log /home/zoe/email-marketing/temp/Default/Session Storage/000004.log 
+2023/02/10-01:01:53.435 3 Delete type=0 #3
+2023/02/10-01:01:53.436 3 Delete type=2 #5
