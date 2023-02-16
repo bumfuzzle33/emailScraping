@@ -11,9 +11,19 @@ puppeteer.use(StealthPlugin())
  
 const {executablePath} = require('puppeteer') 
 
-let searchText = "arts"
-let number_of_articles = 10
-let startPage = 1
+//copy the url and paste it on browser if you wanna see the details...
+var arguments = process.argv ;
+//checking startPage is given
+if (arguments.length === 2) {
+    console.error('Expected at least one argument!');
+    // return will only stop the function that contains the return statement. 
+    // process.exit will stop all the running functions and stop all the tasks.
+    process.exit(1);
+}
+let sampleUrl = 'https://journals.sagepub.com/action/doSearch?field1=AllField&text1=arts&publication=&Ppub=&access=&pageSize=1000&AfterYear=2014&BeforeYear=2023&queryID=14%2F1651925948&startPage=7&sortBy=FullEpubDateField'
+let searchText = "social"
+let number_of_articles = 10000
+let startPage = arguments[2]
 let articlesUrl = `https://journals.sagepub.com/action/doSearch?field1=AllField&text1=${searchText}&publication=&Ppub=&access=&pageSize=${number_of_articles}&AfterYear=2014&BeforeYear=2023&queryID=14%2F1651925948&startPage=${startPage}&sortBy=FullEpubDateField`
 
 let fileName = `journals.sagepub.com__start=${startPage}_articles=${number_of_articles}_search=${searchText}__.json`

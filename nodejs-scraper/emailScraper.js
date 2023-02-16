@@ -14,12 +14,22 @@ puppeteer.use(StealthPlugin())
 const {executablePath} = require('puppeteer') 
 
 //Fill right below variable from articlesLinkJsons folder
-let articleJSONFileName = 'journals.sagepub.com__start=1_articles=1000_search=arts__.json'
+var arguments = process.argv ;
+//checking json file argument is passed
+if (arguments.length === 2) {
+    console.error('Expected at least one argument!');
+    // return will only stop the function that contains the return statement. 
+    // process.exit will stop all the running functions and stop all the tasks.
+    process.exit(1);
+}
+// let articleJSONFileName = 'journals.sagepub.com__start=6_articles=1000_search=arts__.json'
+let articleJSONFileName = arguments[2]
+
 
 let articleJSONFilePath = '/home/zoe/email-marketing/nodejs-scraper/articlesLinkJsons/'
 let articleJSONFilePathPlusName = articleJSONFilePath + articleJSONFileName
 
-let fileName = `journals.sagepub.com__${articleJSONFileName}__emails.txt`
+let fileName = `${articleJSONFileName}__emails.txt`
 let filePath = '/home/zoe/email-marketing/nodejs-scraper/emailsScraped/'
 let filePathPlusName = filePath + fileName
 
@@ -31,30 +41,31 @@ async function scrapeMails(){
 
     const cluster = await Cluster.launch({
         concurrency: Cluster.CONCURRENCY_CONTEXT,
-        maxConcurrency: 10,
+        maxConcurrency: 30,
         puppeteerOptions: {
             // headless: false,
             // defaultViewport: false,
             // userDataDir: './temp',
-            // executablePath: executablePath()
+            executablePath: executablePath()
         }
     })
 
     const userAgent = 'Mozilla/5.0 (X11; Linux x86_64)' + 'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.39 Safari/537.36';
 
-    // await page.setUserAgent(userAgent);
     await cluster.task(async ({page, data: {url,} }) => {
         await page.setUserAgent(userAgent)
+        console.log(`Visit URL = ${url}`)
         await page.goto(url, {
             waitUntil: 'domcontentloaded'
         })
 
         console.log(`Page Loaded.... \n`)
-        await page.screenshot({
-            path: 'scrnshot2.jpg'
-        })
+        // await page.screenshot({
+        //     path: 'scrnshot3.jpg'
+        // })
 
         const grabEmails = await page.evaluate(() => {
+           
             let results = []
             let mailtoElements = document.querySelectorAll('a[href^="mailto:"]')
             mailtoElements.forEach((mailElement) => {
@@ -69,7 +80,6 @@ async function scrapeMails(){
         })
         let emailSubArray = grabEmails
         console.log(emailSubArray)
-        console.log(`Got article mails object`)
 
         emailSubArray.forEach((emailObj,index)=>{
             fs.appendFile(filePathPlusName, `${emailObj.email}\n`, 'utf8', (err)=>{
