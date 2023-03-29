@@ -2,9 +2,17 @@ const puppeteer = require('puppeteer-extra')
 const fs = require('fs').promises
 const performance = require('execution-time')()
 const { Cluster } = require('puppeteer-cluster')
+const child_process = require("child_process")
+const readline = require("readline")
+const sleep = require("sleep")
+
+
+
 
 //at beggining of code
 performance.start()
+
+const maxThreads = 4
 
 
 // add stealth plugin and use defaults (all evasion techniques) 
@@ -38,10 +46,11 @@ async function scrapeMails(){
     const articlesJSON = await fs.readFile(articleJSONFilePathPlusName, 'utf8')
     const articleObj = JSON.parse(articlesJSON)
     let successCount = 0
+    let vpnReconnectCommandThreadActivate = false
 
     const cluster = await Cluster.launch({
         concurrency: Cluster.CONCURRENCY_CONTEXT,
-        maxConcurrency: 30,
+        maxConcurrency: maxThreads,
         puppeteerOptions: {
             // headless: false,
             // defaultViewport: false,
@@ -58,6 +67,64 @@ async function scrapeMails(){
         await page.goto(url, {
             waitUntil: 'domcontentloaded'
         })
+        .catch((err) => {
+            
+            console.log("error loading url")
+
+            if(vpnReconnectCommandThreadActivate == false){
+                console.log("\n\n PROTONVPN RECCONNECT PROCESS STARTED \n\n")
+                vpnReconnectCommandThreadActivate = true
+                const protonvpnDisconnect = child_process.spawn("protonvpn-cli", ["d"])
+
+                // readline.createInterface({
+                //     input     : protonvpnDisconnect.stdout,
+                //     terminal  : false
+                //   }).on('line', function(line) {
+                //     console.log(line);
+                // });
+                // readline.createInterface({
+                //     input     : protonvpnDisconnect.stderr,
+                //     terminal  : false
+                //   }).on('line', function(line) {
+                //     console.log(line);
+                // });
+                
+                // protonvpnDisconnect.on('error', (error) => {
+                //     console.log(`error: ${error.message}`);
+                // });
+                
+                protonvpnDisconnect.on("close", code => {
+                    console.log(`child process exited with code ${code}\n vpn disconnect phase done!`);
+                    const protonvpnRconnectRandom = child_process.spawn("protonvpn-cli", ["c","-r"])
+                
+                    // readline.createInterface({
+                    //     input     : protonvpnRconnectRandom.stdout,
+                    //     terminal  : false
+                    //   }).on('line', function(line) {
+                    //     console.log(line);
+                    // });
+                    // readline.createInterface({
+                    //     input     : protonvpnRconnectRandom.stderr,
+                    //     terminal  : false
+                    //   }).on('line', function(line) {
+                    //     console.log(line);
+                    // });
+                    
+                    // protonvpnRconnectRandom.on('error', (error) => {
+                    //     console.log(`error: ${error.message}`);
+                    // });
+                
+                    protonvpnRconnectRandom.on('close', (code) => {
+                        console.log(`child process exited with code ${code}\n, Let's continue scraping!!!`);
+                        vpnReconnectCommandThreadActivate=false
+                    });
+                
+                });
+            }
+        
+          
+    
+        });
 
         console.log(`Page Loaded.... \n`)
         // await page.screenshot({
@@ -99,6 +166,7 @@ async function scrapeMails(){
 
     })
 
+    console.warn('Number of Articles = ,',articleObj.length)
     for (let i = 0; i < articleObj.length; i++){
         console.log(`${i+1} article(s) of ${articleObj.length} articles processing...\n`)
         let constructedUrl = siteUrl+articleObj[i].url

@@ -21,35 +21,40 @@ if (arguments.length === 2) {
     process.exit(1);
 }
 let sampleUrl = 'https://journals.sagepub.com/action/doSearch?field1=AllField&text1=arts&publication=&Ppub=&access=&pageSize=1000&AfterYear=2014&BeforeYear=2023&queryID=14%2F1651925948&startPage=7&sortBy=FullEpubDateField'
-let searchText = "social"
-let number_of_articles = 10000
+let searchText = "humanities"
+let number_of_articles = 2000
 let startPage = arguments[2]
 let articlesUrl = `https://journals.sagepub.com/action/doSearch?field1=AllField&text1=${searchText}&publication=&Ppub=&access=&pageSize=${number_of_articles}&AfterYear=2014&BeforeYear=2023&queryID=14%2F1651925948&startPage=${startPage}&sortBy=FullEpubDateField`
 
-let fileName = `journals.sagepub.com__start=${startPage}_articles=${number_of_articles}_search=${searchText}__.json`
+let fileName = `start=${startPage}_search=${searchText}_articles=${number_of_articles}__.json`
 let filePath = '/home/zoe/email-marketing/nodejs-scraper/articlesLinkJsons/'
 
 let filePathPlusName = filePath+fileName
 
 async function run () {
     const browser = await puppeteer.launch({
-        // headless: false,
+        headless: false,
         // defaultViewport: false,
-        // userDataDir: './temp',
+        userDataDir: './temp',
         executablePath: executablePath()
     })
 
     console.log('Browser Launched.....\n')
     const page = await browser.newPage()
-    await page.goto(articlesUrl, {
+    let httpStatus = await page.goto(articlesUrl, {
         waitUntil: "domcontentloaded",
+        timeout: 100000
     })
 
+    let statusCode = httpStatus.status()
+
+    console.log('Status Code is ', statusCode, '\n')
     console.log('Page Loaded....\n')
 
     const grabArticletitles = await page.evaluate(() => {
         let results = []
         let items = document.querySelectorAll(".sage-search-title")
+        console.log('Total Elements Match Found = ', items.length)
         items.forEach((item)=>{
             results.push({
                 url: item.getAttribute('href'),
@@ -59,7 +64,10 @@ async function run () {
         return results
 
     })
+    
     jsonStringified = JSON.stringify(grabArticletitles)
+
+    console.warn("Article URL's scraped = ", grabArticletitles.length)
 
     console.log('Got all article urls....\n')
     await browser.close()
